@@ -14,7 +14,7 @@ function handleAnimation() {
         }
       }
 
-      проверка
+      проверка ывыав
       
       document.querySelectorAll('[animate]').forEach((element) => {
         // Разделение текста

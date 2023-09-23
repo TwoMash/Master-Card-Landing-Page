@@ -13,8 +13,6 @@ function handleAnimation() {
           // Если что-то пошло не так
         }
       }
-
-      проверка ывыав
       
       document.querySelectorAll('[animate]').forEach((element) => {
         // Разделение текста

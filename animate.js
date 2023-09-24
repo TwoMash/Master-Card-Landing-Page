@@ -185,17 +185,31 @@ function handleAnimation() {
   window.addEventListener("load", function() {
     const flagObject = document.querySelector('[flag]');
     const secondBlock = document.querySelector('[data-round]');
-    const presentationSections = document.querySelectorAll('[presentation-section]')
+    const presentationSection= document.querySelectorAll('[presentation-section]')
+    const secondRoundElement = document.querySelector("[data-second-round]");
+    const formElement = document.querySelector("[data-form]");
+
 
     gsap.to(flagObject, {
         scrollTrigger: {
             trigger: flagObject,
             start: "bottom bottom",
-            end: "bottom -10000%",
+            endTrigger: formElement, // Указываем элемент, который будет использоваться для определения позиции end
+            end: "top 70%", // Когда верхняя граница formElement будет в центре экрана
             pin: true,
             pinSpacing: false,
         }
     });
+
+  //     gsap.to(formElement, {
+  //     scrollTrigger: {
+  //         trigger: formElement,
+  //         start: "bottom bottom",
+  //         end: "top 70%", // Когда верхняя граница formElement будет в центре экрана
+  //         pin: true,
+  //         pinSpacing: true,
+  //     }
+  // });
 
     gsap.to(flagObject, {
         x: '20%', 
@@ -207,7 +221,18 @@ function handleAnimation() {
         }
     });
 
-    presentationSections.forEach((section) => {
+    gsap.to(secondRoundElement, {
+      scrollTrigger: {
+          trigger: secondRoundElement,
+          start: "center center",
+          endTrigger: formElement, // Указываем элемент, который будет использоваться для определения позиции end
+          end: "top 70%", // Когда верхняя граница formElement будет в центре экрана
+          pin: true,
+          pinSpacing: false,
+      }
+    });
+
+    presentationSection.forEach((section) => {
       gsap.to(section, {
           backgroundColor: '#f13a3d',
           scrollTrigger: {
@@ -219,6 +244,7 @@ function handleAnimation() {
       });
   });
 });
+
 
   
 
@@ -254,3 +280,4 @@ gsap.utils.toArray('[data-counterup]').forEach(function (el) {
     },
   });
 });
+

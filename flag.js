@@ -16,7 +16,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 section.appendChild(renderer.domElement);
 
 const geometry = new THREE.PlaneGeometry(12 * Math.PI, 5 * Math.PI, 150, 30); // увеличьте количество сегментов
-const textureURL = "https://uploads-ssl.webflow.com/65095f9d22c26ab2a962d053/650ff644084d0dfd92b24512_material-3.jpg";
+const textureURL = "https://uploads-ssl.webflow.com/65095f9d22c26ab2a962d053/65109aa30a2995b976195787_material-3.jpg";
 const loadedTexture = textureLoader.load(textureURL);
 const normalMapURL = "https://uploads-ssl.webflow.com/65095f9d22c26ab2a962d053/650ff644109f7d930db73912_normals.jpg";
 const loadedNormalMap = textureLoader.load(normalMapURL);
@@ -29,9 +29,12 @@ loadedNormalMap.wrapS = THREE.RepeatWrapping;
 loadedNormalMap.wrapT = THREE.RepeatWrapping;
 loadedNormalMap.repeat.set(15, 5);
 
+
+
 const uniforms = {
   mixVal: { value: 0 },
   time: { value: 0 }, // инициализируем time здесь
+  waveSpeed: { value: 1.0 } // инициализируем waveSpeed здесь
 };
 
 
@@ -44,14 +47,16 @@ const material = new THREE.MeshPhongMaterial({
   onBeforeCompile: shader => {
     shader.uniforms.mixVal = uniforms.mixVal;
     shader.uniforms.time = uniforms.time;
-  
+    shader.uniforms.waveSpeed = uniforms.waveSpeed;
+
     
     shader.vertexShader = `
     uniform float mixVal;
     uniform float time;
+    uniform float waveSpeed; // Добавьте waveSpeed
     
     float waveAmplitude = 0.025; // Уменьшаем амплитуду
-    float waveFrequency = 3.0; // Увеличиваем частоту
+    float waveFrequency = 2.0; // Увеличиваем частоту
     
     vec3 fromSpherical(float radius, float phi, float theta) {
         float sinPhi = sin(phi);
@@ -61,10 +66,10 @@ const material = new THREE.MeshPhongMaterial({
         
         // Смешиваем несколько волн для создания более хаотичного эффекта
         float wave = waveAmplitude * (
-            sin(mixedFrequency * phi + time) +
-            0.75 * sin(2.0 * mixedFrequency * theta - time) +
-            0.25 * sin(3.0 * mixedFrequency * phi + time)
-        );
+          sin(mixedFrequency * phi + time * waveSpeed) +
+          0.75 * sin(2.0 * mixedFrequency * theta - time * waveSpeed) +
+          0.25 * sin(3.0 * mixedFrequency * phi + time * waveSpeed)
+      );
         
         // Модулируем радиус сферы вместо координат
         float r = radius + wave * sinPhi;
@@ -95,8 +100,8 @@ const material = new THREE.MeshPhongMaterial({
 
 const pointLight = new THREE.PointLight(0xffffff, 15);
 pointLight.position.set(0, 0, 4.5);
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
 directionalLight.position.set(1, 15, 50);
 
 const flag = new THREE.Mesh(geometry, material);
@@ -199,6 +204,77 @@ ScrollTrigger.create({
     camera.position.lerpVectors(initialCameraPosition, finalCameraPosition, mixVal);
   }
 });
+
+const presentationSections = document.querySelectorAll('[presentation-section]');
+
+if(presentationSections.length === 0) {
+    console.error("Нет элементов с атрибутом [presentation-section]");
+}
+
+presentationSections.forEach((section, index) => {
+  ScrollTrigger.create({
+      trigger: section,
+      start: 'center 60%',
+      end: 'center 40%',
+      toggleClass: {targets: section, className: 'active'},
+      onEnter: () => changeTexture(section), // скролл вниз
+      onEnterBack: () => changeTexture(section), // скролл вверх
+      onLeaveBack: () => checkForPreviousActive(section, index) // Вернуться к предыдущей активной секции при скролле вверх
+  });
+});
+
+function checkForPreviousActive(section, index) {
+  if(index > 0) {
+      changeTexture(presentationSections[index - 1]);
+  } else {
+      // Если это первая секция, то сбрасываем текстуру и карту нормалей в исходное состояние
+      resetTexture();
+  }
+}
+
+function resetTexture() {
+  // Устанавливаем текстуру и карту нормалей на исходные значения
+  // Вам нужно заменить это на ваш способ установки текстур и карт нормалей.
+  // Например:
+  material.map = loadedTexture;
+  material.normalMap = loadedNormalMap;
+  material.needsUpdate = true;
+}
+
+function changeTexture(section) {
+  if(section.classList.contains('active')) {
+      const textureURL = section.getAttribute('data-texture');
+      const normalMapURL = section.getAttribute('data-normal-map');
+      // Увеличьте скорость волн на 1 секунду
+      uniforms.waveSpeed.value = 50.0;
+      material.needsUpdate = true; // Добавьте эту строку
+      
+      setTimeout(() => {
+        // Верните скорость волн к исходной после 1 секунды
+        uniforms.waveSpeed.value = 1;
+      }, 350);
+
+      if(textureURL) {
+          const newTexture = textureLoader.load(textureURL);
+          newTexture.wrapS = THREE.RepeatWrapping;
+          newTexture.wrapT = THREE.RepeatWrapping;
+          newTexture.repeat.set(finalRepeat.x, finalRepeat.y); // Здесь используйте finalRepeat
+          material.map = newTexture;
+          material.needsUpdate = true;
+      }
+
+      if(normalMapURL) {
+          const newNormalMap = textureLoader.load(normalMapURL);
+          newNormalMap.wrapS = THREE.RepeatWrapping;
+          newNormalMap.wrapT = THREE.RepeatWrapping;
+          newNormalMap.repeat.set(finalRepeat.x, finalRepeat.y); // Здесь используйте finalRepeat
+          material.normalMap = newNormalMap;
+          material.needsUpdate = true;
+      }
+  }
+}
+
+
 
 
 

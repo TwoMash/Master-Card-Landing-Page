@@ -1,6 +1,8 @@
 import * as THREE from "three";
 
 let mouse = new THREE.Vector2();
+const raycaster = new THREE.Raycaster(); // Инициализация Raycaster
+
 
 document.addEventListener("mousemove", (event) => {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -82,7 +84,9 @@ const material = new THREE.MeshPhongMaterial({
           float phi = (1. - uv.y) * PI;
           float theta = uv.x * PI * 2. + PI;
           vec3 spherePosition = fromSpherical(1., phi, theta);
-
+  
+          float impactRadius = 1.0;
+  
           vec3 modifiedPosition = vec3(spherePosition.x, spherePosition.y, spherePosition.z); // Пример изменения позиции
           
           transformed = mix(position, modifiedPosition, mixVal);
@@ -113,20 +117,18 @@ const initialRepeat = { x: 15, y: 5 };
 const finalRepeat = { x: 3, y: 3 };
 const initialSide = THREE.DoubleSide;
 const finalSide = THREE.FrontSide;
-const initialPosition = new THREE.Vector3(0, 0, 0); // Инициализация вектора смещения
-const finalPosition = new THREE.Vector3(0, 0, 0); // Инициализация вектора смещения
 const initialRotation = new THREE.Vector3(-1, 0, 0);
 const finalRotation = new THREE.Vector3(0, 0, 0);
-const initialCameraPosition = new THREE.Vector3(4, 0, 4); // начальная позиция камеры
-const finalCameraPosition = new THREE.Vector3(0, 0, 2.25); // конечная позиция камеры
+const initialCameraPosition = 4;
+const finalCameraPosition = 2.2;
 const simplex = new SimplexNoise();
 const amplitude = 0.1; // измените, чтобы увеличить/уменьшить амплитуду волн
 const frequency = 0.5; // измените, чтобы увеличить/уменьшить частоту волн
 
 
-
 function animate() {
   const t = clock.getElapsedTime();
+
 
   flag.geometry.attributes.position.array.forEach((value, index) => {
     if ((index + 1) % 3 === 0) {
@@ -162,45 +164,36 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-
 ScrollTrigger.create({
   trigger: "[data-round]",
-  start: "top 150%",
+  start: "top bottom",
   end: "top 50%",
   onUpdate: (self) => {
-    mixVal = self.progress;
+      mixVal = self.progress;
 
-    // Линейная интерполяция значений для текстуры
-    const textureRepeat = new THREE.Vector2(
-      THREE.MathUtils.lerp(initialRepeat.x, finalRepeat.x, mixVal),
-      THREE.MathUtils.lerp(initialRepeat.y, finalRepeat.y, mixVal)
-    );
-    loadedTexture.repeat.copy(textureRepeat);
-    loadedNormalMap.repeat.copy(textureRepeat);
+      // Линейная интерполяция значений
+      loadedTexture.repeat.set(
+          THREE.MathUtils.lerp(initialRepeat.x, finalRepeat.x, mixVal),
+          THREE.MathUtils.lerp(initialRepeat.y, finalRepeat.y, mixVal)
+      );
+      loadedNormalMap.repeat.set(
+          THREE.MathUtils.lerp(initialRepeat.x, finalRepeat.x, mixVal),
+          THREE.MathUtils.lerp(initialRepeat.y, finalRepeat.y, mixVal)
+      );
 
-    // Изменение свойства material.side
-    material.side = mixVal > 0.5 ? finalSide : initialSide;
+      // Изменение свойства material.side
+      material.side = mixVal > 0.5 ? finalSide : initialSide;
 
-    // Линейная интерполяция для позиции и поворота флага
-    flag.rotation.set(
-      THREE.MathUtils.lerp(initialRotation.x, finalRotation.x, mixVal),
-      THREE.MathUtils.lerp(initialRotation.y, finalRotation.y, mixVal),
-      THREE.MathUtils.lerp(initialRotation.z, finalRotation.z, mixVal)
-    );
+      // Изменение поворота флага и позиции камеры
+      flag.rotation.set(
+          THREE.MathUtils.lerp(initialRotation.x, finalRotation.x, mixVal),
+          THREE.MathUtils.lerp(initialRotation.y, finalRotation.y, mixVal),
+          THREE.MathUtils.lerp(initialRotation.z, finalRotation.z, mixVal)
+      );
 
-    flag.position.set(
-      THREE.MathUtils.lerp(initialPosition.x, finalPosition.x, mixVal),
-      THREE.MathUtils.lerp(initialPosition.y, finalPosition.y, mixVal),
-      THREE.MathUtils.lerp(initialPosition.z, finalPosition.z, mixVal)
-    );
-
-
-    // Плавное перемещение камеры
-    camera.position.lerpVectors(initialCameraPosition, finalCameraPosition, mixVal);
+      camera.position.z = THREE.MathUtils.lerp(initialCameraPosition, finalCameraPosition, mixVal);
   }
 });
-
-
 
 
 animate();

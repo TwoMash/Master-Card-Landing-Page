@@ -133,7 +133,7 @@ function handleAnimation() {
                 opacity: 0
             },
             {
-                opacity: 1,
+                opacity: 1.5,
                 duration: 2,
                 scrollTrigger: {
                     trigger: el,
@@ -164,7 +164,7 @@ function handleAnimation() {
               end: "top -30%",    // конец анимации, когда верх элемента section поднимается до -30% от высоты экрана
               onEnter: () => {
                   gsap.to(headerElement, {
-                     backgroundColor: "hsla(240, 4.8%, 8.2%, 1.00)",
+                     backgroundColor: "hsla(240, 11%, 2%, 1.00)",
                       boxShadow: "0 -6px 15px 13px hsla(0, 0.00%, 0.00%, 0.15)",
                       duration: 0.5
                   });
@@ -183,19 +183,43 @@ function handleAnimation() {
 
 
   window.addEventListener("load", function() {
+    const flagObject = document.querySelector('[flag]');
+    const secondBlock = document.querySelector('[data-round]');
+    const presentationSections = document.querySelectorAll('[presentation-section]')
 
-    const pinObject = document.querySelector('[flag-pin]');
-
-    gsap.to(pinObject, {
+    gsap.to(flagObject, {
         scrollTrigger: {
-            trigger: pinObject,
+            trigger: flagObject,
             start: "bottom bottom",
             end: "bottom -10000%",
-            pin: pinObject,
+            pin: true,
             pinSpacing: false,
         }
     });
+
+    gsap.to(flagObject, {
+        x: '20%', 
+        scrollTrigger: {
+            trigger: secondBlock,
+            start: 'top bottom',
+            end: 'top center',
+            scrub: true,
+        }
+    });
+
+    presentationSections.forEach((section) => {
+      gsap.to(section, {
+          backgroundColor: '#f13a3d',
+          scrollTrigger: {
+              trigger: section,
+              start: 'center 60%',
+              end: 'center 40%',
+              toggleActions: 'play reverse play reverse' // play при входе в видимую область, reverse при выходе из видимой области
+          }
+      });
+  });
 });
+
   
 
 
